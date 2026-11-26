@@ -1,0 +1,25 @@
+# main への push で本番へデプロイする（処理の本体は rsync-deploy.yml）
+# リポジトリ変数 DEPLOY_ENABLED が true になるまで、push では動かない。
+# 手動実行（Actions タブ → deploy → Run workflow）は、既定で dry-run。
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: dry-run（変更内容を表示するだけで、サーバーは変更しない）
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: github.event_name == 'workflow_dispatch' || vars.DEPLOY_ENABLED == 'true'
+    uses: wscalm/html/.github/workflows/rsync-deploy.yml@main
+    with:
+      dry_run: ${{ inputs.dry_run == true }}
+    secrets: inherit
